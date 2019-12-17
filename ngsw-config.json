@@ -25,5 +25,17 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "api",
+      "urls": ["https://platzi-store.herokuapp.com/**"],
+      "cacheConfig": {
+        "maxSize": 3,
+        "maxAge": "5m",
+        "strategy": "freshness",
+        "timeout": "2s"
+      }
+    }
   ]
 }
