@@ -1,5 +1,11 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { SwUpdate, SwPush } from '@angular/service-worker';
+import { SwUpdate } from '@angular/service-worker';
+import { AngularFireMessaging } from '@angular/fire/messaging';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+
+interface Token {
+  token: string;
+}
 
 @Component({
   selector: 'app-root',
@@ -8,15 +14,20 @@ import { SwUpdate, SwPush } from '@angular/service-worker';
 })
 export class AppComponent implements OnInit {
 
+  private tokensCollections: AngularFirestoreCollection<Token>;
+
   constructor(
     private swUpdate: SwUpdate,
-    private swPush: SwPush
-  ) {}
+    private messaging: AngularFireMessaging,
+    private database: AngularFirestore
+  ) {
+    this.tokensCollections = this.database.collection<Token>('tokens');
+  }
 
   ngOnInit() {
     this.updatePWA();
+    this.requestPermission();
     this.listenNotifications();
-    this.register();
   }
 
   updatePWA() {
@@ -27,20 +38,18 @@ export class AppComponent implements OnInit {
     });
   }
 
-  listenNotifications() {
-    this.swPush.messages
-    .subscribe(msg => {
-      console.log(msg);
+  requestPermission() {
+    this.messaging.requestToken
+    .subscribe(token => {
+      console.log(token);
+      this.tokensCollections.add({token});
     });
   }
 
-  register() {
-    const key = 'BLDV1q-_njNKmAfA5SZYxnaicR1l1nzxYcd9VH4qJdFO4tm0TmwOF7uno67Gku3Eoygko8TF6kOdW3FwH62FIs8';
-    this.swPush.requestSubscription({
-      serverPublicKey: key
-    })
-    .then(data => {
-      console.log(data.toJSON());
+  listenNotifications() {
+    this.messaging.messages
+    .subscribe(message => {
+      console.log(message);
     });
   }
 }
